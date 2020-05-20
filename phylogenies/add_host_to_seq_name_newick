@@ -1,0 +1,64 @@
+#!/usr/bin/env perl
+
+use strict;
+use Getopt::Long; my $print_usage = 0;
+
+my $usage = <<USAGE;
+
+  This script adds host info parsed from a genbank record to a sequence name
+  in a newick file (or other text file)
+
+  Mark Stenglein,  5/18/2020
+
+  Usage: $0 [-h] <genbank_metadata_file> fasta_file
+
+   [-h]          print this message
+
+USAGE
+
+if ((scalar @ARGV == 0) and -t STDIN) { print $usage and exit; }
+
+GetOptions ("h" => \$print_usage);
+
+my $metadata_filename = shift @ARGV or die ("$usage\n");
+
+open (my $metadata_fh, "<", $metadata_filename) or die;
+
+my %metadata = ();
+
+# pull out host info
+while (<$metadata_fh>)
+{
+   chomp;
+   my @fields = split "\t";
+   my $acc = $fields[0];
+   my $host = $fields[10];
+   $metadata{$acc}{host} = $host;
+}
+
+# read through fasta
+
+while (<>)
+{
+   chomp;
+   my $line = $_;
+   # parse out accession
+   while ($line =~ /(YP_|[A-Z]+)([0-9]+)\.\d+/g)
+   {
+       my $acc = $1.$2;
+       my $host = `grep $acc $metadata_filename | cut -f 11`;
+       $host =~ s/[\(\)]//g;
+       $host =~ s/ /_/g;
+       chomp $host;
+       if ($host)
+       {
+          # add host info to accession
+	  $line =~ s/($acc\.\d+)/$acc\_$host/;
+       }
+   }
+   print "$line\n";
+}
+
+
+
+

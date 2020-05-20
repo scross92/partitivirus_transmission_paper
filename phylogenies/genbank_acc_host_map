@@ -1,0 +1,74 @@
+#!/usr/bin/python
+
+# This python script parses a genbank file with multiple genbank records. It will parse out name, organism, date collected, isolation source, country, db_xref, title of paper, host, latitude and longitude, strain ID and country from which it was isolated. This script can easily be changed to include other features. The output is a tab delimited file with a line for each record. If a "cell" is empty, the feature coudn't be found. 
+
+# * I need to determine if the feature names are different between records because this would give a false negative. 
+
+# Marylee Kapuscinski
+# 03.25.2020
+
+# Adapted from biostars.org/p/76032
+
+import sys
+from Bio import SeqIO
+
+
+parsed_genbank = [] # Create file for output
+# sys.stdout = open('parsed_genbank', 'w') # Designate where the output will go using sys
+
+input_handle = open(sys.argv[1]) # use file argument from command line as input
+
+for r in SeqIO.parse(input_handle, "genbank"): # The beginning of the for loop. Uses SeqIO to parse the file. Change this to use sys.argv
+	title = isolation_source = ""
+	if 'references' in r.annotations: #each if statement designates the feature in r.annotations. 
+		ref = r.annotations['references'][0]
+		title = ref.title
+	source = r.features[0]
+	if 'isolation_source' in source.qualifiers:
+		isolation_source = source.qualifiers['isolation_source'][0]
+	else:
+		isolation_source = "not_found" # Return 'not_found' if feature not found
+	if 'host' in source.qualifiers:
+		host = source.qualifiers['host'][0]
+	else:
+		host = "not_found"
+	if 'collection_date' in source.qualifiers:
+		collection_date = source.qualifiers['collection_date'][0]
+	else:
+		collection_date = "not_found"
+	if 'lat_lon' in source.qualifiers:
+		lat_lon = source.qualifiers['lat_lon'][0]
+	else:
+		 lat_lon = "not_found"
+	if 'organism' in source.qualifiers:
+		organism = source.qualifiers['organism'][0]
+	else:
+		organism = "not_found"
+	if 'strain' in source.qualifiers:
+		strain = source.qualifiers['strain'][0]
+	else:
+		strain = "not_found"
+	if 'db_xref' in source.qualifiers:
+		db_xref = source.qualifiers['db_xref'][0]
+	else:
+		db_xref = "not_found"
+	if 'segment' in source.qualifiers:
+		segment = source.qualifiers['segment'][0]
+	else:
+		segment = "not_found"
+	if 'country' in source.qualifiers:
+		country = source.qualifiers['country'][0]
+	else:
+		country = "not_found"
+	if 'isolate' in source.qualifiers:
+		isolate = source.qualifiers['isolate'][0]
+	else:
+		isolate = "not_found"
+	sys.stdout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (r.name, organism, strain, isolate, segment, db_xref, country, lat_lon, collection_date, isolation_source, host, title)) # Write results to stdout with tab delimited spacing and a new line after each record.
+
+
+# Check the parsed_genbank file to make sure it appears to have worked.
+# There should be the same number of lines in the parsed_genbank file as 
+# there were records in the original genbank file. 
+
+# Go to check_parsed_genbank script to do this

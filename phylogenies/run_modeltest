@@ -1,0 +1,122 @@
+#!/bin/bash
+
+# run a phylogeny pipeline
+
+in=$1
+
+modeltest-ng-static --force --disable-checkpoint -d aa -i $in -o ${in}.modeltest_ng_out.txt -T raxml
+# modeltest-ng-static --disable-checkpoint -d aa -i $in -o ${in}.modeltest_ng_out_mb_template.txt -T mrbayes
+
+
+#       
+#                                    _      _ _            _      _   _  _____ 
+#                                   | |    | | |          | |    | \ | |/ ____|
+#                _ __ ___   ___   __| | ___| | |_ ___  ___| |_   |  \| | |  __ 
+#               | '_ ` _ \ / _ \ / _` |/ _ \ | __/ _ \/ __| __|  | . ` | | |_ |
+#               | | | | | | (_) | (_| |  __/ | ||  __/\__ \ |_   | |\  | |__| |
+#               |_| |_| |_|\___/ \__,_|\___|_|\__\___||___/\__|  |_| \_|\_____|
+#       --------------------------------------------------------------------------------
+#       modeltest x.y.z
+#       Copyright (C) 2017 Diego Darriba, David Posada, Alexandros Stamatakis
+#       License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+#       This is free software: you are free to change and redistribute it.
+#       There is NO WARRANTY, to the extent permitted by law.
+#       
+#       Written by Diego Darriba.
+#       --------------------------------------------------------------------------------
+#       
+#       Usage: modeltest -i sequenceFilename
+#                   [-c n_categories] [-d nt|aa] [-F] [-N]
+#                   [-p numberOfThreads] [-q partitionsFile]
+#                   [-t mp|fixed|user] [-u treeFile] [-v] [-V]
+#                   [-T raxml|phyml|mrbayes|paup]
+#                   [--eps optimizationEpsilonValue] [--tol parameterTolerance]
+#       
+#       selects the best-fit model of amino acid or nucleotide replacement.
+#       
+#       mandatory arguments for long options are also mandatory for short options.
+#       
+#       
+#        Main arguments:
+#         -d, --datatype data_type_t            sets the data type
+#                        nt                     nucleotide
+#                        aa                     amino acid
+#         -i, --input input_msa                 sets the input alignment file (FASTA or PHYLIP format, required)
+#         -o, --output output_file              pipes the output into a file
+#         -p, --processes n_procs               sets the number of processors to use (shared memory)
+#         -q, --partitions partitions_file      sets a partitioning scheme
+#         -r, --rngseed seed                    sets the seed for the random number generator
+#         -t, --topology type                   sets the starting topology
+#                        ml                     maximum likelihood
+#                        mp                     maximum parsimony
+#                        fixed-ml-jc            fixed maximum likelihood (JC)
+#                        fixed-ml-gtr           fixed maximum likelihood (GTR)
+#                        fixed-mp               fixed maximum parsimony (default)
+#                        random                 random generated tree
+#                        user                   fixed user defined (requires -u argument)
+#         -u, --utree tree_file                 sets a user tree
+#             --force                           force output overriding
+#             --disable-checkpoint              disable checkpoint writing
+#       
+#        Candidate models:
+#         -a, --asc-bias algorithm[:values]     includes ascertainment bias correction
+#                                                 check modeltest manual for more information
+#                        lewis                  Lewis (2001)
+#                        felsenstein            Felsenstein
+#                                                 requires number of invariant sites
+#                        stamatakis             Leaché et al. (2015)
+#                                                 requires invariant sites composition
+#         -f, --frequencies [ef]                sets the candidate models frequencies
+#                                               e: estimated - maximum likelihood (DNA) / empirical (AA)
+#                                               f: fixed - equal (DNA) / model defined (AA)
+#         -h, --model-het [uigf]                sets the candidate models rate heterogeneity
+#                                               u: *uniform
+#                                               i: *proportion of invariant sites (+I)
+#                                               g: *discrite Gamma rate categories (+G)
+#                                               f: *both +I and +G (+I+G)
+#                                               r: free rate models (+R)
+#                                               * included by default
+#         -m, --models list                     sets the candidate model matrices separated by commas.
+#                                               use '+' or '-' prefix for updating the default list.
+#                                               e.g., "-m JTT,LG" evaluates JTT and LG only .
+#                                                     "-m +LG4X,+LG4M,-LG" adds LG4 models and removes LG and from the list.
+#                                               dna: *JC *HKY *TrN *TPM1 *TPM2 *TPM3
+#                                                    *TIM1 *TIM2 *TIM3 *TVM *GTR
+#                                               protein: *DAYHOFF *LG *DCMUT *JTT *MTREV *WAG *RTREV *CPREV
+#                                                        *VT *BLOSUM62 *MTMAM *MTART *MTZOA *PMB *HIVB *HIVW
+#                                                        *JTT-DCMUT *FLU *STMTREV LG4M LG4X GTR
+#                                               * included by default
+#         -s, --schemes [3|5|7|11|203]          sets the number of predefined DNA substitution schemes evaluated
+#                                               3:   JC/F81, K80/HKY, SYM/GTR
+#                                               5:   + TrNef/TrN, TPM1/TPM1uf
+#                                               7:   + TIM1ef/TIM1, TVMef/TVM
+#                                               11:  + TPM2/TPM2uf, TPM3/TPM3uf, TIM2ef/TIM2, TIM3ef/TIM3
+#                                               203: All possible GTR submatrices
+#         -T, --template [tool]                 sets candidate models according to a specified tool
+#                        raxml                  RAxML (DNA 3 schemes / AA full search)
+#                        phyml                  PhyML (DNA full search / 14 AA matrices)
+#                        mrbayes                MrBayes (DNA 3 schemes / 8 AA matrices)
+#                        paup                   PAUP* (DNA full search / AA full search)
+#       
+#        Other options:
+#             --eps epsilon_value               sets the model optimization epsilon
+#             --tol tolerance_value             sets the parameter optimization tolerance
+#             --smooth-frequencies              forces frequencies smoothing
+#         -g, --gamma-rates [a|g]               sets gamma rates mode
+#                            a                  uses the average (or mean) per category (default)
+#                            m                  uses the median per category
+#             --disable-checkpoint              does not create checkpoint files
+#         -H, --no-compress                     disables pattern compression
+#                                               modeltest ignores if there are missing states
+#         -k, --keep-params                     keep branch lengths fixed
+#         -v, --verbose                         run in verbose mode
+#             --help                            display this help message and exit
+#             --version                         output version information and exit
+#       
+#       Exit status:
+#        0  if OK,
+#        1  if minor problems (e.g., invalid arguments or data),
+#        2  if serious trouble (e.g., execution crashed).
+#       
+#       Report modeltest bugs to diego.darriba@h-its.org
+#       ModelTest home page: <http://www.github.com/ddarriba/modeltest/>
