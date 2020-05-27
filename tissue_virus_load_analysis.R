@@ -41,17 +41,19 @@ ggdensity(df_tissues$normalized)
 #pull out male tissue data
 df_tissues_m <- df_tissues %>% 
                 filter(sex == 'male')
+#calculate mean and median of tissues for finding fold change difference
+df_tissues_m %>% group_by(tissue) %>% summarise(mean = mean(normalized), median = median(normalized))
 
 theme_set(theme_classic())
 p_tissue_m <- ggplot(df_tissues_m, aes(tissue, normalized)) +
     geom_boxplot(aes(fill = factor(tissue))) +
     labs(title = "Galbut Virus RNA Levels in Male Tissues",
-         y = "Virus RNA levels relative to RpL-32 (2^-deltaCt)",
+         y = "Galbut virus RNA levels relative to RpL-32 (2^-deltaCt)",
          x = "Tissue Type") +
-    scale_fill_manual(values=c("#56B4E9", "#D55E00")) +
+    scale_fill_manual(values=c("grey", "#D55E00")) +
     theme(legend.position = "none",
           plot.title = element_text(hjust = 0.5)) +
-    scale_y_log10() +
+    scale_y_continuous() +
     stat_compare_means() #this naturally chose to do Wilcoxon
 p_tissue_m #if you want to view the plot
 
@@ -59,15 +61,18 @@ p_tissue_m #if you want to view the plot
 df_tissues_f <- df_tissues %>% 
     filter(sex == 'female')  
 
+#calculate mean and median of tissues for finding fold change difference
+df_tissues_f %>% group_by(tissue) %>% summarise(mean = mean(normalized), median = median(normalized))
+
 p_tissue_f <- ggplot(df_tissues_f, aes(tissue, normalized)) +
   geom_boxplot(aes(fill = factor(tissue))) +
   labs(title = "Galbut Virus RNA Levels in Female Tissues",
-       y = "Virus RNA levels relative to RpL-32 (2^-deltaCt)",
+       y = "Galbut virus RNA levels relative to RpL-32 (2^-deltaCt)",
        x = "Tissue Type") +
-  scale_fill_manual(values=c("#56B4E9", "#D55E00")) +
+  scale_fill_manual(values=c("grey", "#56B4E9")) +
   theme(legend.position = "none",
         plot.title = element_text(hjust = 0.5)) +
-  scale_y_log10() +
+  scale_y_continuous() +
   stat_compare_means()
 
 p_tissue_f #if you want to visualize the plot here    
@@ -77,6 +82,36 @@ library(patchwork)
 p_tissue_f | p_tissue_m
 
 #save it as a PDF
-ggsave("tissue_virus_load.pdf")
+ggsave("sex_tissue_virus_load.pdf")
 
 #This PDF was then opened with Affinity designer for aesthetics and sizing
+
+#do comparison of body tissues by sex
+df_tissues_body <- df_tissues %>%
+  filter(tissue == "body")
+
+#is it significant? yes
+df_tissues_body %>% wilcox_test(normalized~sex, 
+            paired = FALSE, 
+            p.adjust.method = "holm")
+
+#plot it
+p_tissue_body <- ggplot(df_tissues_body, aes(sex, normalized)) +
+  geom_boxplot(aes(fill = factor(sex))) +
+  labs(title = "Galbut Virus RNA Levels in Female Tissues",
+       y = "Galbut virus RNA levels relative to RpL-32 (2^-deltaCt)",
+       x = "Sex") +
+  scale_fill_manual(values=c("#56B4E9", "#D55E00")) +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous() +
+  stat_compare_means()
+
+p_tissue_body
+
+ggsave("body_virus_load.pdf")
+
+
+#calculate mean and median of tissues for finding fold change difference
+df_tissues_body %>% group_by(sex) %>% summarise(mean = mean(normalized), median = median(normalized))
+

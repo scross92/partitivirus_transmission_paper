@@ -46,7 +46,7 @@ df_fly_offspring %>% wilcox_test(normalized~transmission,
 #colorblind friendly colors found here: https://personal.sron.nl/~pault/#sec:qualitative
 theme_set(theme_classic())
 
-g_fly_offspring <- ggplot(df_offspring, aes(transmission, normalized)) +
+g_fly_offspring <- ggplot(df_fly_offspring, aes(transmission, normalized)) +
   geom_boxplot(aes(fill=factor(transmission)), outlier.shape = NA) + 
   scale_fill_manual(values=c("#56B4E9", "#D55E00")) +
   labs(title="Galbut virus RNA Levels in Offspring",
@@ -68,6 +68,10 @@ g_fly_offspring <- ggplot(df_offspring, aes(transmission, normalized)) +
 
 
 g_fly_offspring
+
+#calculate mean and median of offspring for finding fold change difference
+df_fly_offspring %>% group_by(transmission) %>% summarise(mean = mean(normalized), median = median(normalized))
+
 
 #######Verdadero virus analysis###########
 
@@ -113,6 +117,10 @@ g_mosquito_offspring <- ggplot(df_mos_offspring, aes(transmission, normalized)) 
   stat_compare_means()
 
 g_mosquito_offspring
+
+#calculate mean and median of offspring for finding fold change difference
+df_mos_offspring %>% group_by(transmission) %>% summarise(mean = mean(normalized), median = median(normalized))
+
 
 #now can combine those two plots together for general vorus load
 library(patchwork)
