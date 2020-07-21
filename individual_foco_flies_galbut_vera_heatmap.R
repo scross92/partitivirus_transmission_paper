@@ -1,4 +1,4 @@
-#Script for creating Figure 2
+#Script for creating Figure 1C
 
 #The goal of this script is:
 
@@ -6,7 +6,7 @@
 #this script focuses on galbut virus (all segs separated), chaq virus, vera virus (all segs separated) and chaq-like (vera) virus
 
 #created by: Shaun Cross
-#date: 05-18-2020
+#initial creation date: 05-18-2020
 
 
 library(tidyverse)
@@ -51,7 +51,8 @@ df <- df %>% mutate(virus = fct_relevel(virus,
                                         "galbut_RNA1", "galbut_RNA2", "galbut_RNA3",
                                         "galbut_RNA_Chaq",
                                         "vera_RNA1", "vera_RNA2",
-                                        "vera_RNA_Chaq"))
+                                        "vera_RNA_Chaq",
+                                        "RpL32", "pepper_cryptic_virus1"))
 
 #plotting together gets messy because of different sample names (i.e. F-10-18 and F-10-17)
 #filter by year, plot separately then recombine with patchwork
@@ -59,10 +60,11 @@ df_foco17 <- filter(df, df$year=="2017")
 df_foco18 <- filter(df, df$year=="2018")
 
 #plot FoCo-17 heatmap
+#note that the legend is removed in this plot for combining both together
 foco17.hm <- ggplot(data = df_foco17, mapping = aes(x = virus,
                                                   y = sample,
                                                   fill = normalized_reads)) +
-  geom_tile(color = "white") +
+  geom_tile(color = "gray22") +
   xlab(label = "Virus segment") +
   #facet_grid(~ location) +
   scale_fill_gradient(name = "Reads",
@@ -78,7 +80,9 @@ foco17.hm <- ggplot(data = df_foco17, mapping = aes(x = virus,
         axis.title.y = element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank(),
-        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF"))
+        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF"),
+        legend.position = "none")
+  #facet_grid(sample_type ~ RNA_type) #used to break apart by groups...but this didnt work well, so will split after
 
 foco17.hm
 
@@ -86,7 +90,7 @@ foco17.hm
 foco18.hm <- ggplot(data = df_foco18, mapping = aes(x = virus,
                                                     y = sample,
                                                     fill = normalized_reads)) +
-  geom_tile(color = "white") +
+  geom_tile(color = "gray22") +
   xlab(label = "Virus segment") +
   #facet_grid(~ location) +
   scale_fill_gradient(name = "Reads",
@@ -112,6 +116,31 @@ library(patchwork)
 foco17.hm | foco18.hm
 
 #save the file
-ggsave("combined_2017_2018_invidual_flies_separate.pdf")
+ggsave("combined_2017_2018_invidual_flies_separate.pdf", width = 6, height = 8, units = "in")
 
 #This PDF was then imported into affinity designer to edit aesthetics for final fig
+
+
+#do males and females differ in RNA levels as determined by mapping reads?
+#using combined data for this portion
+df_combined <- read_excel("individual_foco_flies_galbut_vera.xlsx", sheet = "tidy_condensed")
+
+#remove chaq and chaq-like RNAs since they dont always co-occur
+df_combined_filter <- filter(df_combined, virus != "chaq", virus != "chaq_vera")
+
+#does it appear to be normalized? no, do wilcoxon
+ggplot(df_combined_filter, aes(x = normalized_reads)) + 
+  geom_histogram() +
+  facet_wrap(~sex)
+library(car)
+qqp(df_combined_filter$normalized_reads) # this is the major red flag
+ggdensity(df_combined_filter$normalized_reads)
+
+
+
+filter(df_combined_filter, year == "2018") %>%
+  wilcox_test(normalized_reads~virus, 
+                                paired = FALSE, 
+                                p.adjust.method = "holm")
+
+
