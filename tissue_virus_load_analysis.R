@@ -1,4 +1,4 @@
-#Script for analysis for Figure 5C
+#Script for analysis for Figure 5C and D
 # Virus load analysis of testes and ovaries compared to bodies
 
 #Aims of this script:
@@ -44,17 +44,21 @@ df_tissues_m <- df_tissues %>%
 #calculate mean and median of tissues for finding fold change difference
 df_tissues_m %>% group_by(tissue) %>% summarise(mean = mean(normalized), median = median(normalized))
 
+#add in the comparisons you want to make for stats
+my_comparisons_m <- list( c("body", "midgut"), c("body", "testes"), c("midgut", "testes") )
+
 theme_set(theme_classic())
 p_tissue_m <- ggplot(df_tissues_m, aes(tissue, normalized)) +
     geom_boxplot(aes(fill = factor(tissue))) +
     labs(title = "Galbut Virus RNA Levels in Male Tissues",
          y = "Galbut virus RNA levels relative to RpL-32 (2^-deltaCt)",
          x = "Tissue Type") +
-    scale_fill_manual(values=c("grey", "#D55E00")) +
+    scale_fill_manual(values=c("grey", "#009E73", "#D55E00")) +
     theme(legend.position = "none",
           plot.title = element_text(hjust = 0.5)) +
     scale_y_continuous() +
-    stat_compare_means() #this naturally chose to do Wilcoxon
+    stat_compare_means(comparisons = my_comparisons_m)  #this naturally chose to do Wilcoxon
+    #stat_compare_means(label.y = 50)
 p_tissue_m #if you want to view the plot
 
 #separate out the female tissue data
@@ -64,16 +68,19 @@ df_tissues_f <- df_tissues %>%
 #calculate mean and median of tissues for finding fold change difference
 df_tissues_f %>% group_by(tissue) %>% summarise(mean = mean(normalized), median = median(normalized))
 
+#create comparisons list for plotting
+my_comparisons_f <- list( c("body", "midgut"), c("body", "ovaries"), c("midgut", "ovaries") )
+
 p_tissue_f <- ggplot(df_tissues_f, aes(tissue, normalized)) +
   geom_boxplot(aes(fill = factor(tissue))) +
   labs(title = "Galbut Virus RNA Levels in Female Tissues",
        y = "Galbut virus RNA levels relative to RpL-32 (2^-deltaCt)",
        x = "Tissue Type") +
-  scale_fill_manual(values=c("grey", "#56B4E9")) +
+  scale_fill_manual(values=c("grey", "#009E73", "#56B4E9")) +
   theme(legend.position = "none",
         plot.title = element_text(hjust = 0.5)) +
   scale_y_continuous() +
-  stat_compare_means()
+  stat_compare_means(comparisons = my_comparisons_f)
 
 p_tissue_f #if you want to visualize the plot here    
 
@@ -82,7 +89,7 @@ library(patchwork)
 p_tissue_f | p_tissue_m
 
 #save it as a PDF
-ggsave("sex_tissue_virus_load.pdf")
+ggsave("sex_tissue_virus_load_v2.pdf")
 
 #This PDF was then opened with Affinity designer for aesthetics and sizing
 
@@ -109,7 +116,7 @@ p_tissue_body <- ggplot(df_tissues_body, aes(sex, normalized)) +
 
 p_tissue_body
 
-ggsave("body_virus_load.pdf")
+ggsave("body_virus_load_v2.pdf")
 
 
 #calculate mean and median of tissues for finding fold change difference
